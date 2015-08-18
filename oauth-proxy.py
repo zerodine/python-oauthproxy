@@ -9,6 +9,7 @@ define("api", default="http://localhost:8080/v2/api/", help="API endpoint")
 define("id", default="53b3b1cd5bd2cf3e230041a7_FIXTURE", help="OAuth client id")
 define("secret", default="SECURE", help="OAuth client secret")
 define("frontend", default="/", help="Path to the frontend")
+define("port", default="8888", help="Port to listen for connections")
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -25,5 +26,5 @@ if __name__ == "__main__":
     ]
 
     application = tornado.web.Application(handlers, **settings)
-    application.listen(8888)
+    application.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
