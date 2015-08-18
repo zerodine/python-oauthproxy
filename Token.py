@@ -1,21 +1,27 @@
 import json
+import time
 
 
 class Token():
-    token = {}
+    access_token = None
+    refresh_token = None
+    expires_in = 0
+    expires_at = 0
+    token_type = None
+    scope = None
 
-    def __init__(self, token):
+    def __init__(self, token=None):
         if token:
-            self.token = json.loads(token)
+            token = json.loads(token)
+            self.access_token = token['access_token']
+            self.refresh_token = token['refresh_token']
+            self.expires_in = int(token['expires_in'])
+            self.expires_at = int(time.time()) + int(token['expires_in'])
+            self.token_type = token['token_type']
+            self.scope = token['scope']
 
     def get_access_token(self):
-        if "access_token" in self.token:
-            return self.token["access_token"]
-
-        return None
+        return self.access_token
 
     def get_refresh_token(self):
-        if "refresh_token" in self.token:
-            return self.token["refresh_token"]
-
-        return None
+        return self.refresh_token

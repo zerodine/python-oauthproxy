@@ -1,52 +1,54 @@
 import tornado.web
-from Token import Token
+from torndsession.sessionhandler import SessionBaseHandler
 from tornado.options import options
 from tornado_cors import CorsMixin
 import tornado.httpclient
+from Token import Token
 from Auth import Auth
+import time
 
 
-class ProxyHandler(CorsMixin, tornado.web.RequestHandler):
+class ProxyHandler(CorsMixin, SessionBaseHandler):
     CORS_ORIGIN = '*'
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'GET'
 
-    token_refreshed = False
+    timeout = 5
+
+    @tornado.web.asynchronous
+    def get(self, *args, **kwargs):
+        self.request_backend(self.session.get('token', default=Token()))
+
+    @tornado.web.asynchronous
+    def post(self, *args, **kwargs):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def put(self, *args, **kwargs):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def delete(self, *args, **kwargs):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def options(self, *args, **kwargs):
+        return self.get()
 
     def prepare(self):
         pass
 
-    def handle_response(self, response):
-        if response.code == 401 and not self.token_refreshed:
-            self.token_refreshed = True
-            token = Token(self.get_secure_cookie('token'))
-            code, token = Auth.refresh(token.get_refresh_token())
-            if code == 200:
-                self.set_secure_cookie('token', token)
-                self.request_backend(Token(token))
-                return
-
-        self.token_refreshed = False
-        self.set_status(response.code)
-        for (name, value) in response.headers.get_all():
-            self.set_header(name, value)
-        self.write(response.body)
-        self.finish()
-
     def request_backend(self, token):
-        url = options.api_endpoint + self.request.uri[7:]
+        url = options.api + self.request.uri[7:]
         body = self.request.body
         if not body:
             body = None
 
-        access_token = token.get_access_token()
-        if not access_token:
-            self.set_status(401)
-            self.finish()
-            return
-
         headers = self.request.headers
-        headers['Authorization'] = 'Bearer ' + access_token
+
+        access_token = token.get_access_token()
+        if access_token:
+            headers['Authorization'] = 'Bearer ' + access_token
 
         req = tornado.httpclient.HTTPRequest(url, method=self.request.method, body=body, headers=headers,
                                              follow_redirects=False, allow_nonstandard_methods=False)
@@ -62,15 +64,39 @@ class ProxyHandler(CorsMixin, tornado.web.RequestHandler):
                 self.write('Internal server error:\n' + str(e))
                 self.finish()
 
-    @tornado.web.asynchronous
-    def get(self, *args, **kwargs):
-        token = Token(self.get_secure_cookie('token'))
-        self.request_backend(token)
+    def handle_response(self, response):
+        if response.code == 401:
+            self.refresh_token()
+            self.request_backend(self.session.get('token'))
+            return
 
-    @tornado.web.asynchronous
-    def post(self):
-        return self.get()
+        self.set_status(response.code)
+        for (name, value) in response.headers.get_all():
+            self.set_header(name, value)
+        self.write(response.body)
+        self.finish()
 
-    @tornado.web.asynchronous
-    def put(self):
-        return self.get()
+    def refresh_token(self):
+        if self.session.get('token_gets_refreshed', default=False):
+            print "token gets refreshed by other call"
+            timeout = time.time() + self.timeout
+            while True:
+                if not self.session.get('token_gets_refreshed'):
+                    print "token refreshed by other call"
+                    return
+                if time.time() > timeout:
+                    print "got timeout"
+                    return
+
+        if 'token' in self.session:
+            self.session.set('token_gets_refreshed', True)
+
+            token = self.session.get('token')
+            code, token = Auth.refresh(token.get_refresh_token())
+            if code == 200:
+                print "token refreshed"
+                self.session.set('token_gets_refreshed', False)
+                self.session.set('token', Token(token))
+                return
+
+        self.session.set('token_gets_refreshed', False)

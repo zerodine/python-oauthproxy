@@ -7,10 +7,10 @@ class Auth():
 
     @staticmethod
     def auth(username, password):
-        url = options.token_endpoint
+        url = options.token
         body = urllib.urlencode({
-            'client_id': options.client_id,
-            'client_secret': options.client_secret,
+            'client_id': options.id,
+            'client_secret': options.secret,
             'grant_type': 'password',
             'username': username,
             'password': password
