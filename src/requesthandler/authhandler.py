@@ -1,8 +1,6 @@
-import tornado.web
 from torndsession.sessionhandler import SessionBaseHandler
-from Auth import Auth
 from tornado_cors import CorsMixin
-from Token import Token
+from libs import Auth, Token
 
 
 class AuthHandler(CorsMixin, SessionBaseHandler):
@@ -14,9 +12,9 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
         username = self.get_argument('username')
         password = self.get_argument('password')
 
-        code, token = Auth.auth(username, password)
+        code, body = Auth.auth(username, password)
         if code == 200:
-            self.session['token'] = Token(token)
+            self.session['token'] = Token(body)
             print "received new token"
         else:
             self.write(body)

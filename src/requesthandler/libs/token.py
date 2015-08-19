@@ -3,6 +3,7 @@ import time
 
 
 class Token():
+
     access_token = None
     refresh_token = None
     expires_in = 0

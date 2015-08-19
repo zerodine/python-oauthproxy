@@ -5,6 +5,9 @@ import tornado.httpclient
 
 class Auth():
 
+    def __init__(self):
+        pass
+
     @staticmethod
     def auth(username, password):
         url = options.token

@@ -1,8 +1,7 @@
 import tornado.ioloop
 import tornado.web
-from RequestHandler import AuthHandler
-from RequestHandler import ProxyHandler
 from tornado.options import define, options
+from requesthandler import AuthHandler, ProxyHandler
 
 define("token", default="http://localhost:8080/oauth/v2/token", help="Endpoint to receive token from")
 define("api", default="http://localhost:8080/v2/api/", help="API endpoint")
