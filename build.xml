@@ -36,7 +36,7 @@
         </exec>
     </target>
 
-    <target name="build" depends="_init,doc"
+    <target name="build" depends="_init"
             description="compile the source ">
         <exec executable="${pip}">
             <arg value="freeze"/>
@@ -46,27 +46,8 @@
             <arg value="sdist"/>
             <arg value="bdist_wheel"/>
         </exec>
-        <!--<antcall target="tag" /> -->
     </target>
 
-    <target name="doc" description="builds the sphinx documentation">
-        <!--<exec executable="make">
-            <arg value="-C"/>
-            <arg value="${basedir}/doc"/>
-            <arg value="html"/>
-        </exec>
-        <copydir src="${basedir}/doc/_build/html" dest="${basedir}/doc/html" />-->
-    </target>
-
-    <!--<target name="_tag" description="Creates a git tag for the given repository">
-        <exec executable="git">
-            <arg value="tag"/>
-            <arg value="-a"/>
-            <arg value="v${VERSION}.${env.BUILD_NUMBER}"/>
-            <arg value="-m"/>
-            <arg value="'tag created by ant ${VERSION}.${env.BUILD_NUMBER}'"/>
-        </exec>
-    </target>-->
 
     <target name="_clean"
             description="clean up">
