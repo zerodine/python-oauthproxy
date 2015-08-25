@@ -9,14 +9,11 @@
     <property name="dist" location="dist"/>
     <property name="python" location="/usr/bin/python"/>
     <property name="pip" location="/usr/local/bin/pip"/>
-
-    <!--
-        <property environment="env"/>
-        <property name="virtenv" location="${env.VIRTUAL_ENV}" />
-        <property name="python" location="${virtenv}/bin/python"/>
-        <property name="pip" location="${virtenv}/bin/pip"/>
-        <echo message="Virtual Env is in: ${env.VIRTUAL_ENV}" />
-    -->
+    <property environment="env"/>
+    <property name="virtenv" location="${env.VIRTUAL_ENV}" />
+    <property name="python" location="${virtenv}/bin/python"/>
+    <property name="pip" location="${virtenv}/bin/pip"/>
+    <echo message="Virtual Env is in: ${env.VIRTUAL_ENV}" />
     <property name="BUILD_TAG" value="dev"/>
     <property name="VERSION" value="0.1.0"/>
     <tstamp>
@@ -29,21 +26,21 @@
         <mkdir dir="${build}"/>
         <mkdir dir="${dist}"/>
 
-        <!--<exec executable="${pip}">
+        <exec executable="${pip}">
             <arg value="install"/>
             <arg value="wheel"/>
         </exec>
         <exec executable="${pip}">
             <arg value="install"/>
             <arg value="twine"/>
-        </exec>-->
+        </exec>
     </target>
 
     <target name="build" depends="_init,doc"
             description="compile the source ">
-        <!--<exec executable="${pip}">
+        <exec executable="${pip}">
             <arg value="freeze"/>
-        </exec>-->
+        </exec>
         <exec executable="${python}">
             <arg value="setup.py"/>
             <arg value="sdist"/>
