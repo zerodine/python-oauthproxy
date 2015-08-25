@@ -14,6 +14,7 @@
     <property name="python" location="${virtenv}/bin/python"/>
     <property name="pip" location="${virtenv}/bin/pip"/>
     <echo message="Virtual Env is in: ${env.VIRTUAL_ENV}" />
+    <echo message="PIP is in: ${pip}" />
     <property name="BUILD_TAG" value="dev"/>
     <property name="VERSION" value="0.1.0"/>
     <tstamp>
