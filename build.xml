@@ -6,9 +6,9 @@
     <!-- set global properties for this build -->
     <property name="src" location="src"/>
     <property name="build" location="build"/>
-    <property name="dist" location="dist"/>
+    <property name="dist" location="dist"/><!--
     <property name="python" location="/usr/bin/python"/>
-    <property name="pip" location="/usr/local/bin/pip"/>
+    <property name="pip" location="/usr/local/bin/pip"/>-->
     <property environment="env"/>
     <property name="virtenv" location="${env.VIRTUAL_ENV}" />
     <property name="python" location="${virtenv}/bin/python"/>
