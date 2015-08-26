@@ -21,3 +21,22 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
 
         self.set_status(code)
         self.finish()
+
+    def put(self):
+        if self.session.get('token', default=False):
+            token = self.session.get('token')
+            code, token = Auth.refresh(token.get_refresh_token())
+
+            if code == 200:
+                self.session.set('token_gets_refreshed', False)
+                self.session.set('token', Token(token))
+            else:
+                self.write(token)
+
+            self.set_status(code)
+            self.finish()
+
+        else:
+            self.set_status(403)
+            self.write('{error: "no active session"}')
+            self.finish()

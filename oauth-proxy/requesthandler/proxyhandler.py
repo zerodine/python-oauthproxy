@@ -66,9 +66,10 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     def handle_response(self, response):
         if response.code == 401:
-            self.refresh_token()
-            self.request_backend(self.session.get('token'))
-            return
+            if self.session.get('token', default=False):
+                self.refresh_token()
+                self.request_backend(self.session.get('token'))
+                return
 
         self.set_status(response.code)
         for (name, value) in response.headers.get_all():

@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     handlers = [
         (r"/auth", AuthHandler),
-        (r"/static/(.*)", tornado.web.StaticFileHandler, {'path': options.frontend}),
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {'path': options.frontend, 'default_filename': 'index.html'}),
         (r"/proxy/(.*)", ProxyHandler)
     ]
 

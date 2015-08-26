@@ -37,10 +37,10 @@ class Auth():
     @staticmethod
     def refresh(refresh_token):
 
-        url = options.token_endpoint
+        url = options.token
         body = urllib.urlencode({
-            'client_id': options.client_id,
-            'client_secret': options.client_secret,
+            'client_id': options.id,
+            'client_secret': options.secret,
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token
         })
