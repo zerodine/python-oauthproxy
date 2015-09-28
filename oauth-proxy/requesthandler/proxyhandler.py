@@ -15,6 +15,8 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     timeout = 5
 
+    prevent_headers = ['Content-Type']
+
     @tornado.web.asynchronous
     def get(self, *args, **kwargs):
         self.request_backend(self.session.get('token', default=Token()))
@@ -33,6 +35,10 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     @tornado.web.asynchronous
     def options(self, *args, **kwargs):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def head(self, *args, **kwargs):
         return self.get()
 
     def prepare(self):
@@ -73,7 +79,8 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
         self.set_status(response.code)
         for (name, value) in response.headers.get_all():
-            self.set_header(name, value)
+            if name.lower().startswith('x-') or name.lower() in map(str.lower, self.prevent_headers):
+                self.set_header(name, value)
         self.write(response.body)
         self.finish()
 
