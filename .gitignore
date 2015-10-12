@@ -2,4 +2,4 @@ venv
 *.pyc
 build
 dist
-oauth_proxy.egg-info
+*.egg-info
