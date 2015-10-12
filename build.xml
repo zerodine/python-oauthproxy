@@ -1,4 +1,4 @@
-<project name="ServiceContainer" default="build" basedir=".">
+<project name="oauthproxy" default="build" basedir=".">
     <description>
         Builds the OAuthProxy
     </description>
@@ -13,8 +13,10 @@
     <property name="virtenv" location="${env.VIRTUAL_ENV}" />
     <property name="python" location="${virtenv}/bin/python"/>
     <property name="pip" location="${virtenv}/bin/pip"/>
+
     <echo message="Virtual Env is in: ${env.VIRTUAL_ENV}" />
     <echo message="PIP is in: ${pip}" />
+
     <property name="BUILD_TAG" value="dev"/>
     <property name="VERSION" value="0.1.0"/>
     <tstamp>
@@ -39,9 +41,6 @@
 
     <target name="build" depends="_init"
             description="compile the source ">
-        <exec executable="${pip}">
-            <arg value="freeze"/>
-        </exec>
         <exec executable="${python}">
             <arg value="setup.py"/>
             <arg value="sdist"/>

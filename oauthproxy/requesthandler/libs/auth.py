@@ -3,11 +3,7 @@ import urllib
 import tornado.httpclient
 
 
-class Auth():
-
-    def __init__(self):
-        pass
-
+class Auth(object):
     @staticmethod
     def auth(username, password):
         url = options.token

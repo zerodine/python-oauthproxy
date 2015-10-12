@@ -1,6 +1,6 @@
 from torndsession.sessionhandler import SessionBaseHandler
 from tornado_cors import CorsMixin
-from libs import Auth, Token
+from .libs import Auth, Token
 
 
 class AuthHandler(CorsMixin, SessionBaseHandler):

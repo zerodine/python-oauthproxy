@@ -12,8 +12,15 @@ define("frontend", default="/", help="Path to the frontend")
 define("port", default="8888", help="Port to listen for connections")
 
 
-def main():
-    tornado.options.parse_command_line()
+def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
+    if standalone:
+        tornado.options.parse_command_line()
+    else:
+        options.frontend = frontend
+        options.secret = secret
+        options.id = id
+        options.api = api
+        options.token = token
 
     settings = {
         'debug': True,
@@ -27,8 +34,14 @@ def main():
     ]
 
     application = tornado.web.Application(handlers, **settings)
-    application.listen(options.port)
-    tornado.ioloop.IOLoop.instance().start()
+    if standalone:
+        application.listen(options.port)
+        tornado.ioloop.IOLoop.instance().start()
+    else:
+        return application
 
 if __name__ == "__main__":
-    main()
+    try:
+        main(standalone=True)
+    except KeyboardInterrupt:
+        pass

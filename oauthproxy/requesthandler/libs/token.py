@@ -2,8 +2,7 @@ import json
 import time
 
 
-class Token():
-
+class Token(object):
     access_token = None
     refresh_token = None
     expires_in = 0

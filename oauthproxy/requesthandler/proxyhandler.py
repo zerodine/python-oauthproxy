@@ -5,7 +5,7 @@ from torndsession.sessionhandler import SessionBaseHandler
 from tornado.options import options
 from tornado_cors import CorsMixin
 import tornado.httpclient
-from libs import Auth, Token
+from .libs import Auth, Token
 
 
 class ProxyHandler(CorsMixin, SessionBaseHandler):
