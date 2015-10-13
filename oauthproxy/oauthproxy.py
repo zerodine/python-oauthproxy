@@ -36,12 +36,12 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
     application = tornado.web.Application(handlers, **settings)
     if standalone:
         application.listen(options.port)
-        tornado.ioloop.IOLoop.instance().start()
+        try:
+            tornado.ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            pass
     else:
         return application
 
 if __name__ == "__main__":
-    try:
-        main(standalone=True)
-    except KeyboardInterrupt:
-        pass
+    main(standalone=True)

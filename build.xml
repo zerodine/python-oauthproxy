@@ -23,7 +23,7 @@
         <format property="env.BUILD_NUMBER" pattern="yyyyMMddhhmm"/>
     </tstamp>
 
-    <target name="_init" depends="_clean">
+    <target name="_init" depends="clean">
         <!-- Create the time stamp -->
         <tstamp/>
         <mkdir dir="${build}"/>
@@ -49,11 +49,12 @@
     </target>
 
 
-    <target name="_clean"
+    <target name="clean"
             description="clean up">
         <!-- Delete the ${build} and ${dist} directory trees -->
         <delete dir="${build}"/>
         <delete dir="${dist}"/>
         <delete dir="${basedir}/doc/_build"/>
+        <delete dir="${basedir}/oauthproxy.egg-info"/>
     </target>
 </project>
