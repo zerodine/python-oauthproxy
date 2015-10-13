@@ -104,7 +104,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'oauthproxy = oauthproxy.oauthproxy:main',
+            'oauthproxyd = oauthproxy.oauthproxy:main',
         ]
     }
 )
