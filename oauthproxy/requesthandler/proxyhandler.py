@@ -1,4 +1,5 @@
 import time
+import re
 
 import tornado.web
 from torndsession.sessionhandler import SessionBaseHandler
@@ -16,39 +17,38 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
     timeout = 5
 
     prevent_headers = ['Content-Type']
-
-    @tornado.web.asynchronous
-    def get(self, *args, **kwargs):
+    def _default_request(self):
         self.request_backend(self.session.get('token', default=Token()))
 
     @tornado.web.asynchronous
+    def get(self, *args, **kwargs):
+        self._default_request()
+
+    @tornado.web.asynchronous
     def post(self, *args, **kwargs):
-        return self.get()
+        self._default_request()
 
     @tornado.web.asynchronous
     def put(self, *args, **kwargs):
-        return self.get()
+        self._default_request()
 
     @tornado.web.asynchronous
     def delete(self, *args, **kwargs):
-        return self.get()
+        self._default_request()
 
     @tornado.web.asynchronous
     def options(self, *args, **kwargs):
-        return self.get()
+        self._default_request()
 
     @tornado.web.asynchronous
     def head(self, *args, **kwargs):
-        return self.get()
+        self._default_request()
 
     def prepare(self):
         pass
 
     def request_backend(self, token):
-        url = options.api + self.request.uri[7:]
-        body = self.request.body
-        if not body:
-            body = None
+        url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
 
         headers = self.request.headers
 
@@ -56,8 +56,12 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         if access_token:
             headers['Authorization'] = 'Bearer ' + access_token
 
-        req = tornado.httpclient.HTTPRequest(url, method=self.request.method, body=body, headers=headers,
-                                             follow_redirects=False, allow_nonstandard_methods=False)
+        req = tornado.httpclient.HTTPRequest(url,
+                                             method=self.request.method,
+                                             body=self.request.body if self.request.body else None,
+                                             headers=headers,
+                                             follow_redirects=False,
+                                             allow_nonstandard_methods=False)
         client = tornado.httpclient.AsyncHTTPClient()
 
         try:
