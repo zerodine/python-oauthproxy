@@ -13,6 +13,7 @@
     <property name="virtenv" location="${env.VIRTUAL_ENV}" />
     <property name="python" location="${virtenv}/bin/python"/>
     <property name="pip" location="${virtenv}/bin/pip"/>
+    <property name="pypi_repository" value="https://pip.office.cyberlink.ch"/>
 
     <echo message="Virtual Env is in: ${env.VIRTUAL_ENV}" />
     <echo message="PIP is in: ${pip}" />
@@ -22,6 +23,29 @@
     <tstamp>
         <format property="env.BUILD_NUMBER" pattern="yyyyMMddhhmm"/>
     </tstamp>
+
+    <target name="publish" depends="_tag,_publish" />
+
+    <target name="_publish" depends="">
+        <exec executable="${python}">
+            <arg value="setup.py"/>
+            <arg value="sdist"/>
+            <arg value="bdist_wheel"/>
+            <arg value="upload"/>
+            <arg value="-r"/>
+            <arg value="${pypi_repository}"/>
+        </exec>
+    </target>
+
+    <target name="_tag" description="Creates a git tag for the given repository">
+        <!--<exec executable="git">
+            <arg value="tag"/>
+            <arg value="-a"/>
+            <arg value="v${VERSION}.${env.BUILD_NUMBER}"/>
+            <arg value="-m"/>
+            <arg value="'tag created by ant ${VERSION}.${env.BUILD_NUMBER}'"/>
+        </exec>-->
+    </target>
 
     <target name="_init" depends="clean">
         <!-- Create the time stamp -->
