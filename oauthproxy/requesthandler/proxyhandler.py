@@ -7,7 +7,7 @@ from tornado.options import options
 from tornado_cors import CorsMixin
 import tornado.httpclient
 from .libs import Auth, Token
-
+import logging
 
 class ProxyHandler(CorsMixin, SessionBaseHandler):
     CORS_ORIGIN = '*'
@@ -18,7 +18,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     prevent_headers = ['Content-Type']
     def _default_request(self):
-        self.request_backend(self.session.get('token', default=Token()))
+        self.request_backend(self.session.get('token', default=None))
 
     @tornado.web.asynchronous
     def get(self, *args, **kwargs):
@@ -47,10 +47,31 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
     def prepare(self):
         pass
 
-    def request_backend(self, token):
-        url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
+    def _unauthorized(self, token = None):
+        if token:
+            username = token.username
+        else:
+            username = "-empty token-"
+        self.session.set('token', None)
+        logging.warning("Your Session is no longer valid for user %s" % username)
+        self.set_status(401)
+        self.write('Your Session is not valid. Please perform a new login\n')
+        self.finish()
 
+    def request_backend(self, token):
+        if not token or not isinstance(token, Token):
+            return self._unauthorized(token)
+        url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
         headers = self.request.headers
+
+        if not token.isCurrent():
+            self.refresh_token()
+
+        if not token.validate():
+            return self._unauthorized(token)
+
+        token.updateActivity()
+        logging.info("Proxy Request for user %s to (%s) %s" % (token.username, self.request.method, url))
 
         access_token = token.get_access_token()
         if access_token:
@@ -69,14 +90,17 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 self.handle_response(e.response)
+                logging.debug("Request successful for user %s" % token.username)
             else:
+                logging.debug("Request NOT successful for user %s (%s)" % (token.username, str(e)))
                 self.set_status(500)
                 self.write('Internal server error:\n' + str(e))
                 self.finish()
 
     def handle_response(self, response):
+        token = self.session.get('token', default=None)
         if response.code == 401:
-            if self.session.get('token', default=False):
+            if token:
                 self.refresh_token()
                 self.request_backend(self.session.get('token'))
                 return
@@ -85,6 +109,8 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         for (name, value) in response.headers.get_all():
             if name.lower().startswith('x-') or name.lower() in map(str.lower, self.prevent_headers):
                 self.set_header(name, value)
+
+        self.set_header('x-session-end', token.session_end)
         self.write(response.body)
         self.finish()
 

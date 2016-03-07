@@ -1,6 +1,6 @@
 from torndsession.sessionhandler import SessionBaseHandler
 from tornado_cors import CorsMixin
-from .libs import Auth, Token
+from .libs import Auth
 
 
 class AuthHandler(CorsMixin, SessionBaseHandler):
@@ -8,32 +8,35 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'POST'
 
-    def post(self):
+    def delete(self, *args, **kwargs):
+        pass
+
+    def post(self, *args, **kwargs):
         username = self.get_argument('username')
         password = self.get_argument('password')
 
-        code, body = Auth.auth(username, password)
-        if code == 200:
-            self.session['token'] = Token(body)
-            print "received new token"
+        token = Auth.auth(username, password)
+        if token:
+            self.session.set('token', token)
         else:
-            self.write(body)
+            self.write(token.toDict())
 
-        self.set_status(code)
+        self.set_status(200)
         self.finish()
 
-    def put(self):
+    def put(self, *args, **kwargs):
         if self.session.get('token', default=False):
-            token = self.session.get('token')
-            code, token = Auth.refresh(token.get_refresh_token())
+            current_token = self.session.get('token')
+            token = Auth.refresh(current_token)
 
-            if code == 200:
+            if token:
                 self.session.set('token_gets_refreshed', False)
-                self.session.set('token', Token(token))
+                self.session.set('token', token)
             else:
-                self.write(token)
+                self.write(token.toDict())
+            del current_token
 
-            self.set_status(code)
+            self.set_status(200)
             self.finish()
 
         else:
