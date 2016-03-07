@@ -55,7 +55,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         self.session.set('token', None)
         logging.warning("Your Session is no longer valid for user %s" % username)
         self.set_status(401)
-        self.write('Your Session is not valid. Please perform a new login\n')
+        self.write({"error": 'Your Session is not valid. Please perform a new login'})
         self.finish()
 
     def request_backend(self, token):
@@ -94,7 +94,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
             else:
                 logging.debug("Request NOT successful for user %s (%s)" % (token.username, str(e)))
                 self.set_status(500)
-                self.write('Internal server error:\n' + str(e))
+                self.write({"error": 'Internal server error: (%s)' % str(e)})
                 self.finish()
 
     def handle_response(self, response):
@@ -116,14 +116,13 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     def refresh_token(self):
         if self.session.get('token_gets_refreshed', default=False):
-            print "token gets refreshed by other call"
             timeout = time.time() + self.timeout
             while True:
                 if not self.session.get('token_gets_refreshed'):
-                    print "token refreshed by other call"
+                    # token refreshed by other call
                     return
                 if time.time() > timeout:
-                    print "got timeout"
+                    # got timeout
                     return
 
         if 'token' in self.session:
@@ -132,7 +131,6 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
             token = self.session.get('token')
             code, token = Auth.refresh(token.get_refresh_token())
             if code == 200:
-                print "token refreshed"
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', Token(token))
                 return

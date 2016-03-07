@@ -15,7 +15,6 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
 
         self.session.delete('token')
         self.session.delete('token_gets_refreshed')
-
         self.set_status(204)
         self.finish()
 
@@ -51,5 +50,5 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
 
         else:
             self.set_status(403)
-            self.write('{error: "no active session"}')
+            self.write({"error": "no active session"})
             self.finish()
