@@ -8,8 +8,12 @@ from . import Token
 
 class Auth(object):
     @staticmethod
-    def auth(username, password):
+    def logout(token):
+        logging.info("Loggin out user %s" % token.username)
+        return True
 
+    @staticmethod
+    def auth(username, password):
         url = options.token
         logging.info("Auth Request for user %s" % username)
         logging.debug("Authentication url is %s" % url)
@@ -36,10 +40,10 @@ class Auth(object):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
-                return e.response.code, e.response.body
+                return False
 
         logging.error("Auth Request for user %s was NOT possible to perform" % username)
-        return 500, "Auth Request for user %s was NOT possible to perform" % username
+        return False
 
     @staticmethod
     def refresh(current_token):
@@ -67,7 +71,7 @@ class Auth(object):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 logging.warning("Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
-                return e.response.code, e.response.body
+                return False
 
         logging.error("Refreshing token for user %s was NOT possible to perform" % current_token.username)
-        return 500, "Refreshing token for user %s was NOT possible to perform" % current_token.username
+        return False

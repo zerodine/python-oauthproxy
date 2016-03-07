@@ -4,7 +4,11 @@ from tornado.options import define, options
 from requesthandler import AuthHandler, ProxyHandler
 import StringIO
 import logging, logging.config, yaml
+import string
+import random
 
+def secret_generator(size=16, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 def setup_logger(console_level="DEBUG", file_level="WARNING", file='oauth_proxy.log'):
     logger_config = StringIO.StringIO("""version: 1
@@ -47,6 +51,7 @@ define("frontend", default="/", help="Path to the frontend")
 define("port", default="8888", help="Port to listen for connections")
 define("sessionduration", default=1200, help="Seconds of inactivity before a session gets droped")
 
+secret = secret_generator()
 
 def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
     if standalone:
@@ -60,7 +65,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
 
     settings = {
         'debug': True,
-        'cookie_secret': '][hP+h49UNc46FX3k2v6T;fyY}w$Px?8a(nZ2Z)^wH4wNYFhJX'
+        'cookie_secret': secret
     }
 
     handlers = [

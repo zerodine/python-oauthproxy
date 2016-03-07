@@ -8,8 +8,16 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'POST'
 
+    DEFAULT_SESSION_LIFETIME = 1200
+
     def delete(self, *args, **kwargs):
-        pass
+        Auth.logout(self.session.get('token'))
+
+        self.session.delete('token')
+        self.session.delete('token_gets_refreshed')
+
+        self.set_status(204)
+        self.finish()
 
     def post(self, *args, **kwargs):
         username = self.get_argument('username')
@@ -18,10 +26,11 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
         token = Auth.auth(username, password)
         if token:
             self.session.set('token', token)
-        else:
             self.write(token.toDict())
+            self.set_status(200)
+        else:
+            self.set_status(500)
 
-        self.set_status(200)
         self.finish()
 
     def put(self, *args, **kwargs):
@@ -32,11 +41,12 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
             if token:
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', token)
-            else:
                 self.write(token.toDict())
-            del current_token
+                self.set_status(200)
+            else:
+                self.set_status(500)
 
-            self.set_status(200)
+            del current_token
             self.finish()
 
         else:
