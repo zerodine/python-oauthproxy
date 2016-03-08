@@ -7,11 +7,10 @@ from . import Token
 
 class AuthException(Exception):
     code = 500
+
     def __init__(self, code, message=None):
         self.code = code
-        message = message
         Exception.__init__(self, "HTTP %d: %s" % (self.code, message))
-
 
 class Auth(object):
     @staticmethod
@@ -41,7 +40,6 @@ class Auth(object):
         try:
             response = client.fetch(req)
             token = Token(response.body, username, session_duration=options.sessionduration)
-            # TODO: change body
             logging.info("Auth Request for user %s was successful" % username)
             return token
         except tornado.httpclient.HTTPError as e:
@@ -72,7 +70,6 @@ class Auth(object):
         try:
             response = client.fetch(req)
             token = Token(response.body, username=current_token.username, session_duration=options.sessionduration)
-            # TODO: change body
             logging.info("Refreshing token for user %s was successful" % token.username)
             return token
         except tornado.httpclient.HTTPError as e:
