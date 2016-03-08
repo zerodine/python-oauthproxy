@@ -136,7 +136,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
             self.session.set('token_gets_refreshed', True)
 
             token = self.session.get('token')
-            code, token = Auth.refresh(token.get_refresh_token())
+            code, token = Auth.refresh(token)
             if code == 200:
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', Token(token))
