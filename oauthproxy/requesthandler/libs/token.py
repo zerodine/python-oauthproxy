@@ -13,7 +13,6 @@ class Token(object):
     latest_activity = None
     session_duration = None # seconds
 
-
     def __init__(self, token=None, username=None, session_duration=500):
         if token:
             token = json.loads(token)
@@ -40,11 +39,15 @@ class Token(object):
         self.latest_activity = int(time.time())
 
     def isCurrent(self):
+        if not self.access_token:
+            return True
         if (int(time.time()) - self.expires_at) >= 0:
             return False
         return True
 
     def isSessionCurrent(self):
+        if not self.access_token:
+            return True
         if (int(time.time()) - (self.latest_activity + self.session_duration)) >= 0:
             return False
         return True

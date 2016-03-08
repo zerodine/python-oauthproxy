@@ -5,6 +5,13 @@ from tornado.options import options
 import logging
 from . import Token
 
+class AuthException(Exception):
+    code = 500
+    def __init__(self, code, message=None):
+        self.code = code
+        message = message
+        Exception.__init__(self, "HTTP %d: %s" % (self.code, message))
+
 
 class Auth(object):
     @staticmethod
@@ -40,10 +47,10 @@ class Auth(object):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
-                return False
+                raise AuthException(400, "Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
 
         logging.error("Auth Request for user %s was NOT possible to perform" % username)
-        return False
+        raise AuthException(500, "Auth Request for user %s was NOT possible to perform" % username)
 
     @staticmethod
     def refresh(current_token):
@@ -71,7 +78,7 @@ class Auth(object):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 logging.warning("Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
-                return False
+                raise AuthException(400, "Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
 
         logging.error("Refreshing token for user %s was NOT possible to perform" % current_token.username)
-        return False
+        raise AuthException(500, "Refreshing token for user %s was NOT possible to perform" % current_token.username)

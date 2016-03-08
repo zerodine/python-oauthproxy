@@ -59,10 +59,15 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         self.finish()
 
     def request_backend(self, token):
-        if not token or not isinstance(token, Token):
-            return self._unauthorized(token)
         url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
         headers = self.request.headers
+
+        unauthenticated = True if self.request.headers.get('X-Unauthenticated') else False
+        if unauthenticated:
+            token = Token(username='-anonymous-')
+
+        if not token or not isinstance(token, Token):
+            return self._unauthorized(token)
 
         if not token.isCurrent():
             self.refresh_token()
@@ -75,7 +80,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
         access_token = token.get_access_token()
         if access_token:
-            headers['Authorization'] = 'Bearer ' + access_token
+            headers['Authorization'] = 'Bearer %s' % access_token
 
         req = tornado.httpclient.HTTPRequest(url,
                                              method=self.request.method,
@@ -110,7 +115,9 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
             if name.lower().startswith('x-') or name.lower() in map(str.lower, self.prevent_headers):
                 self.set_header(name, value)
 
-        self.set_header('x-session-end', token.session_end)
+        if token:
+            self.set_header('x-session-end', token.session_end)
+
         self.write(response.body)
         self.finish()
 

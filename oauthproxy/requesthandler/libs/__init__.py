@@ -1,2 +1,2 @@
 from token import Token
-from auth import Auth
+from auth import Auth, AuthException

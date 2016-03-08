@@ -1,6 +1,6 @@
 from torndsession.sessionhandler import SessionBaseHandler
 from tornado_cors import CorsMixin
-from .libs import Auth
+from .libs import Auth, AuthException
 
 
 class AuthHandler(CorsMixin, SessionBaseHandler):
@@ -22,32 +22,31 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
         username = self.get_argument('username')
         password = self.get_argument('password')
 
-        token = Auth.auth(username, password)
-        if token:
+        try:
+            token = Auth.auth(username, password)
             self.session.set('token', token)
             self.write(token.toDict())
             self.set_status(200)
-        else:
-            self.set_status(500)
-
+        except AuthException as e:
+            self.write({"error": str(e)})
+            self.set_status(e.code)
         self.finish()
 
     def put(self, *args, **kwargs):
         if self.session.get('token', default=False):
             current_token = self.session.get('token')
-            token = Auth.refresh(current_token)
 
-            if token:
+            try:
+                token = Auth.refresh(current_token)
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', token)
                 self.write(token.toDict())
                 self.set_status(200)
-            else:
-                self.set_status(500)
-
-            del current_token
+                del current_token
+            except AuthException as e:
+                self.write({"error": str(e)})
+                self.set_status(e.code)
             self.finish()
-
         else:
             self.set_status(403)
             self.write({"error": "no active session"})
