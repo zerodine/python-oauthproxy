@@ -47,13 +47,13 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
     def prepare(self):
         pass
 
-    def _unauthorized(self, token = None):
+    def _unauthorized(self, token=None, url=None):
         if token:
             username = token.username
         else:
             username = "-empty token-"
         self.session.set('token', None)
-        logging.warning("Your Session is no longer valid for user %s" % username)
+        logging.warning("Your Session is no longer valid for user %s (%s)" % (username, url))
         self.set_status(401)
         self.write({"error": 'Your Session is not valid. Please perform a new login'})
         self.finish()
@@ -67,13 +67,13 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
             token = Token(username='-anonymous-')
 
         if not token or not isinstance(token, Token):
-            return self._unauthorized(token)
+            return self._unauthorized(token, url)
 
         if not token.isCurrent():
             self.refresh_token()
 
         if not token.validate():
-            return self._unauthorized(token)
+            return self._unauthorized(token, url)
 
         token.updateActivity()
         logging.info("Proxy Request for user %s to (%s) %s" % (token.username, self.request.method, url))
