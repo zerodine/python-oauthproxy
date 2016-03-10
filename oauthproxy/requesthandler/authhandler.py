@@ -10,6 +10,14 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
 
     DEFAULT_SESSION_LIFETIME = 1200
 
+    def head(self, *args, **kwargs):
+        token = self.session.get('token', default=False)
+        if token.validate():
+            self.set_status(204)
+        else:
+            self.set_status(401)
+        self.finish()
+
     def delete(self, *args, **kwargs):
         Auth.logout(self.session.get('token'))
 
