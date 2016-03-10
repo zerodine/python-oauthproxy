@@ -12,11 +12,10 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
 
     def head(self, *args, **kwargs):
         token = self.session.get('token', default=False)
-        if token.validate():
+        if token and token.validate():
             self.set_status(204)
         else:
             self.set_status(401)
-        self.finish()
 
     def delete(self, *args, **kwargs):
         Auth.logout(self.session.get('token'))
@@ -24,7 +23,6 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
         self.session.delete('token')
         self.session.delete('token_gets_refreshed')
         self.set_status(204)
-        self.finish()
 
     def post(self, *args, **kwargs):
         username = self.get_argument('username')
@@ -38,7 +36,6 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
         except AuthException as e:
             self.write({"error": str(e)})
             self.set_status(e.code)
-        self.finish()
 
     def put(self, *args, **kwargs):
         if self.session.get('token', default=False):
@@ -54,8 +51,6 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
             except AuthException as e:
                 self.write({"error": str(e)})
                 self.set_status(e.code)
-            self.finish()
         else:
             self.set_status(403)
             self.write({"error": "no active session"})
-            self.finish()
