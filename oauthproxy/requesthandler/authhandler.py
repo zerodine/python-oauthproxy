@@ -45,6 +45,7 @@ class AuthHandler(CorsMixin, SessionBaseHandler):
                 token = Auth.refresh(current_token)
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', token)
+                self.set_header('x-session-end', token.session_end)
                 self.write(token.toDict())
                 self.set_status(200)
                 del current_token
