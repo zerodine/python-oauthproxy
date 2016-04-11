@@ -1,5 +1,6 @@
 import tornado.ioloop
 import tornado.web
+import tornado.wsgi
 from tornado.options import define, options
 from requesthandler import AuthHandler, ProxyHandler
 import StringIO
@@ -84,7 +85,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
         except KeyboardInterrupt:
             pass
     else:
-        return application
+        return tornado.wsgi.WSGIAdapter(application)
 
 if __name__ == "__main__":
     main(standalone=True)

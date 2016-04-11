@@ -34,7 +34,7 @@ class Auth(object):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        req = tornado.httpclient.HTTPRequest(url, method='POST', body=body, headers=headers)
+        req = tornado.httpclient.HTTPRequest(url, method='POST', body=body, headers=headers, validate_cert=False)
         client = tornado.httpclient.HTTPClient()
 
         try:
@@ -64,7 +64,7 @@ class Auth(object):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        req = tornado.httpclient.HTTPRequest(url, method='POST', body=body, headers=headers)
+        req = tornado.httpclient.HTTPRequest(url, method='POST', body=body, headers=headers, validate_cert=False)
         client = tornado.httpclient.HTTPClient()
 
         try:

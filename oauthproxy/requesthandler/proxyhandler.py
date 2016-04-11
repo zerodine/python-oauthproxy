@@ -87,7 +87,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
                                              body=self.request.body if self.request.body else None,
                                              headers=headers,
                                              follow_redirects=False,
-                                             allow_nonstandard_methods=False)
+                                             allow_nonstandard_methods=False, validate_cert=False)
         client = tornado.httpclient.AsyncHTTPClient()
 
         try:
