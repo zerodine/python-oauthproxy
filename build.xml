@@ -24,7 +24,7 @@
         <format property="env.BUILD_NUMBER" pattern="yyyyMMddhhmm"/>
     </tstamp>
 
-    <target name="publish" depends="_tag,_publish" />
+    <target name="publish" depends="_init,_tag,_publish" />
 
     <target name="_publish" depends="">
         <exec executable="${python}">
