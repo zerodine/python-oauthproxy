@@ -51,10 +51,11 @@ define("secret", default="SECURE", help="OAuth client secret")
 define("frontend", default="/", help="Path to the frontend")
 define("port", default="8888", help="Port to listen for connections")
 define("sessionduration", default=1200, help="Seconds of inactivity before a session gets droped")
+define("logFile", default='oauth_proxy.log', help="Path of log file")
 
 secret = secret_generator()
 
-def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
+def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, logFile='oauth_proxy.log'):
     if standalone:
         tornado.options.parse_command_line()
     else:
@@ -63,6 +64,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
         options.id = id
         options.api = api
         options.token = token
+        options.logFile = logFile
 
     settings = {
         'debug': True,
@@ -74,7 +76,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
         (r"/static/(.*)", tornado.web.StaticFileHandler, {'path': options.frontend, 'default_filename': 'index.html'}),
         (r"/proxy/(.*)", ProxyHandler)
     ]
-    setup_logger(console_level='DEBUG')
+    setup_logger(console_level='DEBUG', file=options.logFile)
     logging.info("Application started")
 
     application = tornado.web.Application(handlers, **settings)
