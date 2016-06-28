@@ -16,6 +16,13 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     timeout = 5
 
+    public_routes = []
+
+
+    def initialize(self, **kwargs):
+        if 'public' in kwargs:
+            self.public_routes = kwargs['public']
+
     prevent_headers = ['Content-Type']
     def _default_request(self):
         self.request_backend(self.session.get('token', default=None))
@@ -58,12 +65,19 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
         self.write({"error": 'Your Session is not valid. Please perform a new login'})
         self.finish()
 
+    def _isPublicRequest(self):
+        if not self.public_routes: return False
+        for pr in self.public_routes:
+            if re.match(pr, self.request.uri, re.I | re.S):
+                return True
+
+
     def request_backend(self, token):
         url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
         headers = self.request.headers
 
         unauthenticated = True if self.request.headers.get('X-Unauthenticated') else False
-        if unauthenticated:
+        if unauthenticated or self._isPublicRequest():
             token = Token(username='-anonymous-')
 
         if not token or not isinstance(token, Token):

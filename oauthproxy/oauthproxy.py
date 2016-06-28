@@ -72,7 +72,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None):
     handlers = [
         (r"/auth", AuthHandler),
         (r"/static/(.*)", tornado.web.StaticFileHandler, {'path': options.frontend, 'default_filename': 'index.html'}),
-        (r"/proxy/(.*)", ProxyHandler)
+        (r"/proxy/(.*)", ProxyHandler, {'public': [r"/proxy/public/(.*)"]})
     ]
     setup_logger(console_level='DEBUG')
     logging.info("Application started")
