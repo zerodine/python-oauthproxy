@@ -102,10 +102,11 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
                                              headers=headers,
                                              follow_redirects=False,
                                              allow_nonstandard_methods=False, validate_cert=False)
-        client = tornado.httpclient.AsyncHTTPClient()
+        client = tornado.httpclient.HTTPClient()
 
         try:
-            client.fetch(req, self.handle_response)
+            response = client.fetch(req)
+            self.handle_response(response)
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 self.handle_response(e.response)
