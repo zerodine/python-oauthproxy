@@ -24,8 +24,8 @@ class SessionManager(object):
         self._load_session()
 
     def finish(self):
-        self._dump_session()
-        self.handler.set_cookie(name=self.SESSION_ID, value=self.session_raw, domain=None, expires=None, path="/", expires_days=None)
+        if self._dump_session():
+            self.handler.set_cookie(name=self.SESSION_ID, value=self.session_raw, domain=None, expires=None, path="/", expires_days=None)
 
     @property
     def signing_serializer(self):
@@ -39,12 +39,16 @@ class SessionManager(object):
 
 
     def _load_session(self):
-        self.session = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
-        pass
+        if self.session_raw:
+            self.session = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
+            return True
+        return False
 
     def _dump_session(self):
-        self.session_raw = self.signing_serializer.dumps(self.session)
-        pass
+        if self.session:
+            self.session_raw = self.signing_serializer.dumps(self.session)
+            return True
+        return False
 
     def get(self, key, default=None):
         """
