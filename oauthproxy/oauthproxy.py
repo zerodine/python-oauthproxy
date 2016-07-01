@@ -52,8 +52,9 @@ define("frontend", default="/", help="Path to the frontend")
 define("port", default="8888", help="Port to listen for connections")
 define("sessionduration", default=1200, help="Seconds of inactivity before a session gets droped")
 define("logFile", default='oauth_proxy.log', help="Path of log file")
+define("cookiesecret", default=None, help="Secret to use for the cookie encryption")
 
-secret = secret_generator()
+secret = options.cookiesecret if options.cookiesecret else secret_generator()
 
 def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, logFile='oauth_proxy.log'):
     if standalone:
