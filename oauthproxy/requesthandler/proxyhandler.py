@@ -2,14 +2,16 @@ import time
 import re
 
 import tornado.web
-from torndsession.sessionhandler import SessionBaseHandler
+#from torndsession.sessionhandler import SessionBaseHandler
+from session import SessionHandler
 from tornado.options import options
 from tornado_cors import CorsMixin
 import tornado.httpclient
 from .libs import Auth, Token
 import logging
+from urlparse import urlparse
 
-class ProxyHandler(CorsMixin, SessionBaseHandler):
+class ProxyHandler(CorsMixin, SessionHandler):
     CORS_ORIGIN = '*'
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'GET'
@@ -18,14 +20,23 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
     public_routes = []
 
-
     def initialize(self, **kwargs):
         if 'public' in kwargs:
             self.public_routes = kwargs['public']
 
-    prevent_headers = ['Content-Type']
+    prevent_headers = ['Access-Control-Allow-Origin', 'Set-Cookie', 'Server', 'Etag', 'Date']
+
+    @property
+    def token(self):
+        token = self.session.get('token', default=None)
+        if isinstance(token, dict):
+            username = self.session.get('username', default=None)
+            session_duration = self.session.get('session_duration', default=500)
+            token = Token(token=token, username=username, session_duration=session_duration)
+        return token
+
     def _default_request(self):
-        self.request_backend(self.session.get('token', default=None))
+        self.request_backend(self.token)
 
     @tornado.web.asynchronous
     def get(self, *args, **kwargs):
@@ -75,6 +86,7 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
     def request_backend(self, token):
         url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
         headers = self.request.headers
+        headers['Host'] = urlparse(url=url).hostname
 
         unauthenticated = True if self.request.headers.get('X-Unauthenticated') else False
         if unauthenticated or self._isPublicRequest():
@@ -118,20 +130,19 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
                 self.finish()
 
     def handle_response(self, response):
-        token = self.session.get('token', default=None)
         if response.code == 401:
-            if token:
+            if self.token:
                 self.refresh_token()
-                self.request_backend(self.session.get('token'))
+                self.request_backend(self.token)
                 return
 
         self.set_status(response.code)
         for (name, value) in response.headers.get_all():
-            if name.lower().startswith('x-') or name.lower() in map(str.lower, self.prevent_headers):
+            if name.lower().startswith('x-') or name.lower().startswith('content-') or name.lower() in map(str.lower, self.prevent_headers):
                 self.set_header(name, value)
 
-        if token:
-            self.set_header('x-session-end', token.session_end)
+        if self.token:
+            self.set_header('x-session-end', self.token.session_end)
 
         self.write(response.body)
         self.finish()
@@ -149,10 +160,10 @@ class ProxyHandler(CorsMixin, SessionBaseHandler):
 
         if 'token' in self.session:
             self.session.set('token_gets_refreshed', True)
-            token = Auth.refresh(self.session.get('token'))
+            token = Auth.refresh(self.token)
             if token:
                 self.session.set('token_gets_refreshed', False)
-                self.session.set('token', Token(token))
+                self.session.set('token', token)
                 return
 
         self.session.set('token_gets_refreshed', False)

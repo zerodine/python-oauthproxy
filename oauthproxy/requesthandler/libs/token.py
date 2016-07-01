@@ -15,7 +15,8 @@ class Token(object):
 
     def __init__(self, token=None, username=None, session_duration=500):
         if token:
-            token = json.loads(token)
+            if not isinstance(token, dict):
+                token = json.loads(token)
             self.access_token = token['access_token']
             self.refresh_token = token['refresh_token']
             self.expires_in = int(token['expires_in'])

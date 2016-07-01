@@ -54,8 +54,6 @@ define("sessionduration", default=1200, help="Seconds of inactivity before a ses
 define("logFile", default='oauth_proxy.log', help="Path of log file")
 define("cookiesecret", default=None, help="Secret to use for the cookie encryption")
 
-secret = options.cookiesecret if options.cookiesecret else secret_generator()
-
 def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, logFile='oauth_proxy.log'):
     if standalone:
         tornado.options.parse_command_line()
@@ -69,7 +67,7 @@ def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, 
 
     settings = {
         'debug': True,
-        'cookie_secret': secret
+        'cookie_secret': options.cookiesecret if options.cookiesecret else secret_generator()
     }
 
     handlers = [

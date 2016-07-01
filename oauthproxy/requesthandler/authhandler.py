@@ -1,9 +1,9 @@
-from torndsession.sessionhandler import SessionBaseHandler
+#from torndsession.sessionhandler import SessionBaseHandler
 from tornado_cors import CorsMixin
 from .libs import Auth, AuthException
+from session import SessionHandler
 
-
-class AuthHandler(CorsMixin, SessionBaseHandler):
+class AuthHandler(CorsMixin, SessionHandler):
     CORS_ORIGIN = '*'
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'POST'
