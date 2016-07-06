@@ -75,7 +75,7 @@ class ProxyHandler(CorsMixin, SessionHandler):
         #self.set_status(401)
         #self.write({"error": 'Your Session is not valid. Please perform a new login'})
         #self.finish()
-        self.redirect('http://nextgen.bexio.dev/login')
+        self.redirect('http://nextgen.bexio.dev/login?_referer=%s' % (self.request.protocol + "://" + self.request.host + self.request.uri), permanent=False)
 
     def _isPublicRequest(self):
         if not self.public_routes: return False
