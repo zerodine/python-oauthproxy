@@ -90,7 +90,6 @@ class ProxyHandler(CorsMixin, SessionHandler):
             if re.match(pr, self.request.uri, re.I | re.S):
                 return True
 
-
     def request_backend(self, token):
         url = "%s%s" % (options.api, re.search(r'(?<=proxy/).*', self.request.uri, re.I | re.M).group(0))
         headers = self.request.headers

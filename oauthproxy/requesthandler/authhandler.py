@@ -20,6 +20,10 @@ class AuthHandler(CorsMixin, SessionHandler):
                 token = Token(token=token_raw)
             except Exception as e:
                 logging.debug("Could not Load Token from Session - %s" % (str(e)))
+
+        logging.info("Proxy Request for user %s to (%s) %s" % (token.username if token else '-anyonymous-', self.request.method, self.request.uri))
+
+
         if token and token.validate():
             self.set_status(204)
         else:
@@ -27,10 +31,8 @@ class AuthHandler(CorsMixin, SessionHandler):
             self.set_status(401)
 
     def delete(self, *args, **kwargs):
-        Auth.logout(self.session.get('token'))
-
-        self.session.delete('token')
-        self.session.delete('token_gets_refreshed')
+        Auth.logout(Token(token=self.session.get('token', None)))
+        self.session.resetSession()
         self.set_status(204)
 
     def post(self, *args, **kwargs):
@@ -40,6 +42,7 @@ class AuthHandler(CorsMixin, SessionHandler):
         try:
             token = Auth.auth(username, password)
             self.session.set('token', token.toDictFull())
+            self.session.set('username', username)
             self.write(token.toDict())
             self.set_status(200)
         except AuthException as e:
@@ -53,9 +56,10 @@ class AuthHandler(CorsMixin, SessionHandler):
             current_token = self.session.get('token')
 
             try:
-                token = Auth.refresh(current_token)
+                token = Auth.refresh(Token(token=current_token, username=self.session.get('username', default=None)))
                 self.session.set('token_gets_refreshed', False)
                 self.session.set('token', token.toDictFull())
+                self.session.set('username', token.username)
                 self.set_header('x-session-end', token.session_end)
                 self.write(token.toDict())
                 self.set_status(200)

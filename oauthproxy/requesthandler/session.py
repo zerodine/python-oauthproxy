@@ -8,12 +8,14 @@ class SessionManager(object):
 
     handler = None
 
-    session = {}
+    session = None
     session_raw = None
+    session_original = None
     session_secret = None
     session_salt = 'cookie-session'
     SESSION_ID = 'session'
 
+    _cookie_written = False
 
     def __init__(self, handler):
         self.handler = handler
@@ -22,11 +24,20 @@ class SessionManager(object):
     def __init_session(self):
         self.session_secret = self.handler.application.settings['cookie_secret']
         self.session_raw = self.handler.get_cookie(self.SESSION_ID, default=None)
+        self.session_original = {}
+        self.session = {}
         self._load_session()
 
+    def set_cookie(self, **kwargs):
+        if self._cookie_written:
+            logging.info("Cookie has already been written, ignoring it")
+            return
+        self._cookie_written = True
+        self.handler.set_cookie(**kwargs)
+
     def finish(self):
-        if self._dump_session():
-            self.handler.set_cookie(name=self.SESSION_ID, value=self.session_raw, domain=None, expires=None, path="/", expires_days=None)
+        if self.session_changed and self._dump_session():
+            self.set_cookie(name=self.SESSION_ID, value=self.session_raw, domain=None, expires=None, path="/", expires_days=None, httponly=True, secure=False)
 
     @property
     def signing_serializer(self):
@@ -38,15 +49,30 @@ class SessionManager(object):
                                       serializer=json,
                                       signer_kwargs=signer_kwargs)
 
+    def resetSession(self):
+        self.session_raw = ''
+        self.session = {}
+        self.session_original = {}
+        self.set_cookie(name=self.SESSION_ID, value=self.session_raw, domain=None, expires=1, path="/",
+                                expires_days=0, httponly=True, secure=False)
 
     def _load_session(self):
         if self.session_raw:
             try:
                 self.session = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
+                self.session_original = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
             except Exception as e:
-                self.session = {}
+                self.resetSession()
                 logging.error("Could not load Session %s" % str(e))
                 return False
+            return True
+        return False
+
+    @property
+    def session_changed(self):
+        x = self.signing_serializer.dump_payload(self.session)
+        y = self.signing_serializer.dump_payload(self.session_original)
+        if x != y:
             return True
         return False
 
@@ -55,10 +81,10 @@ class SessionManager(object):
             try:
                 self.session_raw = self.signing_serializer.dumps(self.session)
             except Exception as e:
-                logging.error("Could not load Session %s" % str(e))
+                self.resetSession()
+                logging.error("Could not dump Session %s" % str(e))
                 return False
-            return True
-        return False
+        return True
 
     def get(self, key, default=None):
         """
