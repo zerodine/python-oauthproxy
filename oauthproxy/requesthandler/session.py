@@ -2,6 +2,7 @@ import tornado
 import hashlib
 from itsdangerous import URLSafeTimedSerializer
 import json
+import logging
 
 class SessionManager(object):
 
@@ -40,13 +41,22 @@ class SessionManager(object):
 
     def _load_session(self):
         if self.session_raw:
-            self.session = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
+            try:
+                self.session = self.signing_serializer.loads(self.session_raw, max_age=(2*60*60))
+            except Exception as e:
+                self.session = {}
+                logging.error("Could not load Session %s" % str(e))
+                return False
             return True
         return False
 
     def _dump_session(self):
         if self.session:
-            self.session_raw = self.signing_serializer.dumps(self.session)
+            try:
+                self.session_raw = self.signing_serializer.dumps(self.session)
+            except Exception as e:
+                logging.error("Could not load Session %s" % str(e))
+                return False
             return True
         return False
 

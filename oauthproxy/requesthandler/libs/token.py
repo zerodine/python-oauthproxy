@@ -60,6 +60,20 @@ class Token(object):
     def session_end(self):
         return self.latest_activity + self.session_duration
 
+    def toDictFull(self):
+        return {
+            'expires_in': self.expires_in,
+            'expires_at': self.expires_at,
+            'scope': self.scope,
+            'latest_activity': self.latest_activity,
+            'session_duration': self.session_duration,
+            'session_end': self.session_end,
+            'access_token': self.access_token,
+            'refresh_token': self.refresh_token,
+            'token_type': self.token_type,
+            'username': self.username
+        }
+
     def toDict(self):
         return {
             'expires_in': self.expires_in,

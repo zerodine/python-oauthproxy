@@ -70,12 +70,19 @@ class ProxyHandler(CorsMixin, SessionHandler):
             username = token.username
         else:
             username = "-empty token-"
-        #self.session.set('token', None)
+        #
         logging.warning("Your Session is no longer valid for user %s (%s)" % (username, url))
-        #self.set_status(401)
-        #self.write({"error": 'Your Session is not valid. Please perform a new login'})
-        #self.finish()
-        self.redirect('http://nextgen.bexio.dev/login?_referer=%s' % (self.request.protocol + "://" + self.request.host + self.request.uri), permanent=False)
+        #
+        #
+        #
+        referer = options.referer
+        if not referer:
+            self.session.set('token', None)
+            self.set_status(401)
+            self.write({"error": 'Your Session is not valid. Please perform a new login'})
+            self.finish()
+        else:
+            self.redirect(referer % (self.request.protocol + "://" + self.request.host + self.request.uri), permanent=False) #'http://nextgen.bexio.dev/login?_referer=%s' % (self.request.protocol + "://" + self.request.host + self.request.uri), permanent=False)
 
     def _isPublicRequest(self):
         if not self.public_routes: return False

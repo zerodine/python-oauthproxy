@@ -53,6 +53,8 @@ define("port", default="8888", help="Port to listen for connections")
 define("sessionduration", default=1200, help="Seconds of inactivity before a session gets droped")
 define("logFile", default='oauth_proxy.log', help="Path of log file")
 define("cookiesecret", default=None, help="Secret to use for the cookie encryption")
+define("referer", default=None, help="URL to redirect if no valid session is available. None causes the exit with 401. %s will get replaced with requested url.")
+
 
 def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, logFile='oauth_proxy.log'):
     if standalone:
