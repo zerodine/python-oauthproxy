@@ -2,19 +2,20 @@ import time
 import re
 
 import tornado.web
-#from torndsession.sessionhandler import SessionBaseHandler
 from session import SessionHandler
 from tornado.options import options
-from tornado_cors import CorsMixin
 import tornado.httpclient
 from .libs import Auth, Token
 import logging
 from urlparse import urlparse
 
-class ProxyHandler(CorsMixin, SessionHandler):
-    CORS_ORIGIN = '*'
+class ProxyHandler(SessionHandler):
+    CORS_ORIGIN = None
     CORS_HEADERS = 'Content-Type'
     CORS_METHODS = 'GET'
+    CORS_CREDENTIALS = True
+    CORS_MAX_AGE = 86400
+    CORS_EXPOSE_HEADERS = None
 
     timeout = 5
 
@@ -25,6 +26,12 @@ class ProxyHandler(CorsMixin, SessionHandler):
             self.public_routes = kwargs['public']
 
     prevent_headers = ['Access-Control-Allow-Origin', 'Set-Cookie', 'Server', 'Etag', 'Date']
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", self.CORS_ORIGIN if self.CORS_ORIGIN else options.corsorigin )
+
+        if self.CORS_EXPOSE_HEADERS:
+            self.set_header('Access-Control-Expose-Headers', self.CORS_EXPOSE_HEADERS)
 
     @property
     def token(self):
@@ -134,6 +141,22 @@ class ProxyHandler(CorsMixin, SessionHandler):
                 self.write({"error": 'Internal server error: (%s)' % str(e)})
                 self.finish()
 
+    def set_cors_headers(self):
+        if self.CORS_HEADERS:
+            self.set_header('Access-Control-Allow-Headers', self.CORS_HEADERS)
+        if self.CORS_METHODS:
+            self.set_header('Access-Control-Allow-Methods', self.CORS_METHODS)
+        else:
+            self.set_header('Access-Control-Allow-Methods', self._get_methods())
+        if self.CORS_CREDENTIALS != None:
+            self.set_header('Access-Control-Allow-Credentials',
+                "true" if self.CORS_CREDENTIALS else "false")
+        if self.CORS_MAX_AGE:
+            self.set_header('Access-Control-Max-Age', self.CORS_MAX_AGE)
+
+        if self.CORS_EXPOSE_HEADERS:
+            self.set_header('Access-Control-Expose-Headers', self.CORS_EXPOSE_HEADERS)
+
     def handle_response(self, response):
         if response.code == 401:
             if self.token:
@@ -145,6 +168,8 @@ class ProxyHandler(CorsMixin, SessionHandler):
         for (name, value) in response.headers.get_all():
             if name.lower().startswith('x-') or name.lower().startswith('content-') or name.lower() in map(str.lower, self.prevent_headers):
                 self.set_header(name, value)
+
+        self.set_cors_headers()
 
         if self.token:
             self.set_header('x-session-end', self.token.session_end)
