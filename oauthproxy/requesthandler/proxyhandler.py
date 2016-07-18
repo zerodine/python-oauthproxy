@@ -66,15 +66,13 @@ class ProxyHandler(CorsMixin, SessionHandler):
         pass
 
     def _unauthorized(self, token=None, url=None):
-        if token:
+        if token and isinstance(token, (Token)):
             username = token.username
         else:
-            username = "-empty token-"
+            username = "-empty/unkown token-"
         #
         logging.warning("Your Session is no longer valid for user %s (%s)" % (username, url))
-        #
-        #
-        #
+
         referer = options.referer
         if not referer:
             self.session.set('token', None)
