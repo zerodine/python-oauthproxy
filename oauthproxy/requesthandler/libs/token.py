@@ -1,9 +1,12 @@
 import json
 import time
-
+import base64
+import hmac
+from hashlib import sha1
+from tornado.options import options
 
 class Token(object):
-    access_token = None
+    _access_token = None
     refresh_token = None
     expires_in = 0
     expires_at = 0
@@ -29,6 +32,31 @@ class Token(object):
         self.username = username
         self.session_duration = session_duration
         self.updateActivity()
+
+    @property
+    def access_token(self):
+        if not self.validate_token():
+            return None
+        return self._access_token
+
+    @access_token.setter
+    def access_token(self, value):
+        self._access_token = value
+
+    def validate_token(self):
+        if not options.tokensecret or not options.tokensalt or not options.tokenpayload:
+            return True
+
+        access_token = self._access_token
+        access_token += b'=' * (-len(access_token) % 4)
+        payload, timestamp, signature = map(lambda x: base64.b64decode(x),
+                                            base64.urlsafe_b64decode(str(access_token)).split('.'))
+
+        hash = hmac.new(hmac.new(options.tokensecret, options.tokensalt, sha1).digest(),
+                        "%s.%s" % (base64.b64encode(payload), base64.b64encode(timestamp)), sha1)
+        if hash.digest() == signature and payload == options.tokenpayload:
+            return True
+        return False
 
     def get_access_token(self):
         return self.access_token

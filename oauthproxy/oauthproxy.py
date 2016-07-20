@@ -56,6 +56,9 @@ define("cookiesecret", default=None, help="Secret to use for the cookie encrypti
 define("referer", default=None, help="URL to redirect if no valid session is available. None causes the exit with 401. %s will get replaced with requested url.")
 define("corsorigin", default='*', help="Sets the CORS Origin Header")
 
+define("tokensecret", default=None, help="Set the secret used to sign the token")
+define("tokensalt", default=None, help="Set the salt used to salt the secret used to sign the token")
+define("tokenpayload", default=None, help="Set plain payload used for the token")
 
 def main(standalone=True,frontend=None,secret=None,id=None,api=None,token=None, logFile='oauth_proxy.log'):
     if standalone:
