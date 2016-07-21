@@ -19,7 +19,7 @@
     <echo message="PIP is in: ${pip}" />
 
     <property name="BUILD_TAG" value="dev"/>
-    <property name="VERSION" value="1.0.1"/>
+    <property name="VERSION" value="1.1.1"/>
     <tstamp>
         <format property="env.BUILD_NUMBER" pattern="yyyyMMddhhmm"/>
     </tstamp>
