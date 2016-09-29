@@ -125,7 +125,9 @@ class ProxyHandler(SessionHandler):
                                              body=self.request.body if self.request.body else None,
                                              headers=headers,
                                              follow_redirects=False,
-                                             allow_nonstandard_methods=False, validate_cert=False)
+                                             allow_nonstandard_methods=False, validate_cert=False,
+                                             request_timeout=options.requesttimeout,
+                                             connect_timeout=options.requesttimeout)
         client = tornado.httpclient.HTTPClient()
 
         try:

@@ -55,6 +55,7 @@ define("logFile", default='oauth_proxy.log', help="Path of log file")
 define("cookiesecret", default=None, help="Secret to use for the cookie encryption")
 define("referer", default=None, help="URL to redirect if no valid session is available. None causes the exit with 401. %s will get replaced with requested url.")
 define("corsorigin", default='*', help="Sets the CORS Origin Header")
+define("requesttimeout", default=300, help="Sets the timeout for requests to the backend")
 
 define("tokensecret", default=None, help="Set the secret used to sign the token")
 define("tokensalt", default=None, help="Set the salt used to salt the secret used to sign the token")
