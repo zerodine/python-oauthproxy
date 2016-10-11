@@ -134,9 +134,9 @@ class ProxyHandler(SessionHandler):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 self.handle_response(e.response)
-                logging.debug("Request successful for user %s" % token.username)
+                logging.debug("Request %s successful for user %s" % (url, token.username))
             else:
-                logging.debug("Request NOT successful for user %s (%s)" % (token.username, str(e)))
+                logging.warning("Request %s NOT successful for user %s (%s)" % (url, token.username, str(e)))
                 self.set_status(500)
                 self.write({"error": 'Internal server error: (%s)' % str(e)})
                 self.finish()

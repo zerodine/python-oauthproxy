@@ -46,6 +46,9 @@ class Auth(object):
             if hasattr(e, 'response') and e.response:
                 logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
                 raise AuthException(e.code, "Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
+            else:
+                logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username, e.code, e.message))
+                raise AuthException(e.code, "Auth Request for user %s was NOT successful %d (%s)" % (username, e.code, e.message))
 
         logging.error("Auth Request for user %s was NOT possible to perform" % username)
         raise AuthException(500, "Auth Request for user %s was NOT possible to perform" % username)
