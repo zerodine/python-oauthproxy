@@ -1,6 +1,6 @@
 import time
 import re
-
+import requests
 import tornado.web
 from session import SessionHandler
 from tornado.options import options
@@ -114,34 +114,18 @@ class ProxyHandler(SessionHandler):
             return self._unauthorized(token, url)
 
         token.updateActivity()
-        logging.info("Proxy Request for user %s to (%s) %s" % (token.username, self.request.method, url))
+        logging.debug("Proxy Request for user %s to (%s) %s" % (token.username, self.request.method, url))
 
         access_token = token.get_access_token()
         if access_token:
             headers['Authorization'] = 'Bearer %s' % access_token
 
-        req = tornado.httpclient.HTTPRequest(url,
-                                             method=self.request.method,
-                                             body=self.request.body if self.request.body else None,
-                                             headers=headers,
-                                             follow_redirects=False,
-                                             allow_nonstandard_methods=False, validate_cert=False,
-                                             request_timeout=options.requesttimeout,
-                                             connect_timeout=options.requesttimeout)
-        client = tornado.httpclient.HTTPClient()
-
-        try:
-            response = client.fetch(req)
-            self.handle_response(response)
-        except tornado.httpclient.HTTPError as e:
-            if hasattr(e, 'response') and e.response:
-                self.handle_response(e.response)
-                logging.debug("Request (%s) %s NOT successful for user %s (%s)" % (self.request.method, url, token.username, e.code))
-            else:
-                logging.warning("Request (%s) %s NOT successful for user %s (%s %s)" % (self.request.method, url, token.username, e.code, str(e)))
-                self.set_status(500)
-                self.write({"error": 'Internal server error: (%s)' % str(e)})
-                self.finish()
+        response = requests.request(self.request.method, url,
+                                    headers=headers,
+                                    data=self.request.body if self.request.body else None,
+                                    verify=False)
+        logging.info("Proxy Response for user %s to (%s) %s - %s" % (token.username, self.request.method, url, response.status_code))
+        self.handle_response(response)
 
     def set_cors_headers(self):
         if self.CORS_HEADERS:
@@ -160,14 +144,14 @@ class ProxyHandler(SessionHandler):
             self.set_header('Access-Control-Expose-Headers', self.CORS_EXPOSE_HEADERS)
 
     def handle_response(self, response):
-        if response.code == 401:
+        if response.status_code == 401:
             if self.token:
                 self.refresh_token()
                 self.request_backend(self.token)
                 return
 
-        self.set_status(response.code)
-        for (name, value) in response.headers.get_all():
+        self.set_status(response.status_code)
+        for (name, value) in response.headers.iteritems():
             if name.lower().startswith('x-') or name.lower().startswith('content-') or name.lower() in map(str.lower, self.prevent_headers):
                 self.set_header(name, value)
 
@@ -176,7 +160,7 @@ class ProxyHandler(SessionHandler):
         if self.token:
             self.set_header('x-session-end', self.token.session_end)
 
-        self.write(response.body)
+        self.write(response.text)
         self.finish()
 
     def refresh_token(self):
