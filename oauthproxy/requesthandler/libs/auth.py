@@ -44,14 +44,14 @@ class Auth(object):
             return token
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
-                logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
-                raise AuthException(e.code, "Auth Request for user %s was NOT successful %d (%s)" % (username,e.response.code, e.response.body))
+                logging.warning("Auth Request for user %s was NOT successful %d" % (username,e.response.code))
+                raise AuthException(401, "Auth Request for user %s was NOT successful %d" % (username,e.response.code))
             else:
-                logging.warning("Auth Request for user %s was NOT successful %d (%s)" % (username, e.code, e.message))
-                raise AuthException(e.code, "Auth Request for user %s was NOT successful %d (%s)" % (username, e.code, e.message))
+                logging.warning("Auth Request for user %s was NOT successful %d" % (username, e.code))
+                raise AuthException(401, "Auth Request for user %s was NOT successful %d" % (username, e.code))
 
         logging.error("Auth Request for user %s was NOT possible to perform" % username)
-        raise AuthException(500, "Auth Request for user %s was NOT possible to perform" % username)
+        raise AuthException(401, "Auth Request for user %s was NOT possible to perform" % username)
 
     @staticmethod
     def refresh(current_token):

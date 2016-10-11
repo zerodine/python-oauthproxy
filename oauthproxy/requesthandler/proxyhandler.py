@@ -107,10 +107,10 @@ class ProxyHandler(SessionHandler):
         if not token or not isinstance(token, Token):
             return self._unauthorized(token, url)
 
-        if not token.isCurrent():
+        if token.get_access_token() and not token.isCurrent():
             self.refresh_token()
 
-        if not token.validate():
+        if token.get_access_token() and not token.validate():
             return self._unauthorized(token, url)
 
         token.updateActivity()
@@ -134,9 +134,9 @@ class ProxyHandler(SessionHandler):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 self.handle_response(e.response)
-                logging.debug("Request %s successful for user %s" % (url, token.username))
+                logging.debug("Request (%s) %s NOT successful for user %s (%s)" % (self.request.method, url, token.username, e.code))
             else:
-                logging.warning("Request %s NOT successful for user %s (%s)" % (url, token.username, str(e)))
+                logging.warning("Request (%s) %s NOT successful for user %s (%s %s)" % (self.request.method, url, token.username, e.code, str(e)))
                 self.set_status(500)
                 self.write({"error": 'Internal server error: (%s)' % str(e)})
                 self.finish()
@@ -179,21 +179,23 @@ class ProxyHandler(SessionHandler):
 
     def refresh_token(self):
         if self.session.get('token_gets_refreshed', default=False):
-            timeout = time.time() + self.timeout
-            while True:
-                if not self.session.get('token_gets_refreshed'):
-                    # token refreshed by other call
-                    return
-                if time.time() > timeout:
-                    # got timeout
-                    return
+            time.sleep(self.timeout)
+            return
+            #timeout = time.time() + self.timeout
+            #while True:
+            #    if not self.session.get('token_gets_refreshed'):
+            #        # token refreshed by other call
+            #        return
+            #    if time.time() > timeout:
+            #        # got timeout
+            #        return
 
         if 'token' in self.session:
             self.session.set('token_gets_refreshed', True)
             token = Auth.refresh(self.token)
             if token:
-                self.session.set('token_gets_refreshed', False)
                 self.session.set('token', token)
+                self.session.set('token_gets_refreshed', False)
                 return
 
         self.session.set('token_gets_refreshed', False)

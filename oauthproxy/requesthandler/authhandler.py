@@ -23,7 +23,6 @@ class AuthHandler(CorsMixin, SessionHandler):
 
         logging.info("Proxy Request for user %s to (%s) %s" % (token.username if token else '-anyonymous-', self.request.method, self.request.uri))
 
-
         if token and token.validate():
             self.set_status(204)
         else:
@@ -47,8 +46,8 @@ class AuthHandler(CorsMixin, SessionHandler):
             self.set_status(200)
         except AuthException as e:
             self.write({"error": str(e)})
-            logging.debug("Could not Authenticate" % (str(e)))
-            self.set_status(e.code)
+            logging.debug("Could not Authenticate %s" % (str(e)))
+            self.set_status(401)
         self.finish()
 
     def put(self, *args, **kwargs):
