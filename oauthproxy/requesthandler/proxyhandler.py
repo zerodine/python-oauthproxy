@@ -167,14 +167,6 @@ class ProxyHandler(SessionHandler):
         if self.session.get('token_gets_refreshed', default=False):
             time.sleep(self.timeout)
             return
-            #timeout = time.time() + self.timeout
-            #while True:
-            #    if not self.session.get('token_gets_refreshed'):
-            #        # token refreshed by other call
-            #        return
-            #    if time.time() > timeout:
-            #        # got timeout
-            #        return
 
         if 'token' in self.session:
             self.session.set('token_gets_refreshed', True)
