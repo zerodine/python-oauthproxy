@@ -38,7 +38,7 @@ class ProxyHandler(SessionHandler):
         token = self.session.get('token', default=None)
         if isinstance(token, dict):
             username = self.session.get('username', default=None)
-            session_duration = self.session.get('session_duration', default=500)
+            session_duration = token.get('session_duration', options.sessionduration)
             token = Token(token=token, username=username, session_duration=session_duration)
         return token
 
@@ -125,7 +125,9 @@ class ProxyHandler(SessionHandler):
                                              body=self.request.body if self.request.body else None,
                                              headers=headers,
                                              follow_redirects=False,
-                                             allow_nonstandard_methods=False, validate_cert=False)
+                                             allow_nonstandard_methods=False, validate_cert=False,
+                                             request_timeout=options.requesttimeout,
+                                             connect_timeout=options.requesttimeout)
         client = tornado.httpclient.HTTPClient()
 
         try:
