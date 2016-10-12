@@ -146,9 +146,9 @@ class ProxyHandler(SessionHandler):
     def handle_response(self, response):
         if response.status_code == 401:
             if self.token:
-                self.refresh_token()
-                self.request_backend(self.token)
-                return
+                if self.refresh_token():
+                    self.request_backend(self.token)
+                    return
 
         self.set_status(response.status_code)
         for (name, value) in response.headers.iteritems():
@@ -164,16 +164,17 @@ class ProxyHandler(SessionHandler):
         self.finish()
 
     def refresh_token(self):
-        if self.session.get('token_gets_refreshed', default=False):
-            time.sleep(self.timeout)
-            return
+        #if self.session.get('token_gets_refreshed', default=False):
+        #    time.sleep(self.timeout)
+        #    return False
 
         if 'token' in self.session:
-            self.session.set('token_gets_refreshed', True)
+            #self.session.set('token_gets_refreshed', True)
             token = Auth.refresh(self.token)
             if token:
                 self.session.set('token', token)
-                self.session.set('token_gets_refreshed', False)
-                return
+                #self.session.set('token_gets_refreshed', False)
+                return True
 
-        self.session.set('token_gets_refreshed', False)
+        #self.session.set('token_gets_refreshed', False)
+        return False
