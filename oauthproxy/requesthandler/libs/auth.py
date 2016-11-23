@@ -34,7 +34,12 @@ class Auth(object):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        req = tornado.httpclient.HTTPRequest(url, method='POST', body=body, headers=headers, validate_cert=False)
+        req = tornado.httpclient.HTTPRequest(url,
+                                             method='POST',
+                                             body=body,
+                                             headers=headers,
+                                             validate_cert=False,
+                                             request_timeout=60)
         client = tornado.httpclient.HTTPClient()
 
         try:
