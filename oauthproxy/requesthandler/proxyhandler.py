@@ -160,7 +160,8 @@ class ProxyHandler(SessionHandler):
         if self.token:
             self.set_header('x-session-end', self.token.session_end)
 
-        self.write(response.content)
+        if response.status_code != 204:
+            self.write(response.content)
         self.finish()
 
     def refresh_token(self):
