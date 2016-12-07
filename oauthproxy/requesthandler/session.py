@@ -1,4 +1,5 @@
 import tornado
+from tornado.web import RequestHandler
 import hashlib
 from itsdangerous import URLSafeTimedSerializer
 import json
@@ -128,7 +129,7 @@ class SessionManager(object):
     def __contains__(self, key):
         return key in self.session
 
-class SessionHandler(tornado.web.RequestHandler):
+class SessionHandler(RequestHandler):
     @property
     def session(self):
         return self._create_mixin(self, '__session_manager', SessionManager)

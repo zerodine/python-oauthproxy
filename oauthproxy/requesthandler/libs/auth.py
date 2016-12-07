@@ -1,16 +1,13 @@
 from tornado.options import options
 import urllib
 import tornado.httpclient
+from tornado.web import HTTPError
 from tornado.options import options
 import logging
 from . import Token
 
-class AuthException(Exception):
-    code = 500
-
-    def __init__(self, code, message=None):
-        self.code = code
-        Exception.__init__(self, "HTTP %d: %s" % (self.code, message))
+class AuthException(HTTPError):
+    pass
 
 class Auth(object):
     @staticmethod
@@ -83,7 +80,7 @@ class Auth(object):
         except tornado.httpclient.HTTPError as e:
             if hasattr(e, 'response') and e.response:
                 logging.warning("Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
-                raise AuthException(e.code, "Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
+                raise AuthException(401, "Refreshing token for user %s was NOT successful %d (%s)" % (current_token.username, e.response.code, e.response.body))
 
         logging.error("Refreshing token for user %s was NOT possible to perform" % current_token.username)
         raise AuthException(500, "Refreshing token for user %s was NOT possible to perform" % current_token.username)
